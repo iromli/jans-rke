@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# RKE
+cluster.yml
+cluster.rkestate
+kube_config_cluster.yml
+config/generate.json

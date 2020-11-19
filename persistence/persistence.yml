@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: persistence-cm
+  namespace: jans
+data:
+  CN_CONFIG_ADAPTER: "kubernetes"
+  CN_SECRET_ADAPTER: "kubernetes"
+  CN_PERSISTENCE_TYPE: "ldap"
+  CN_LDAP_URL: "opendj:1636"
+  CN_SECRET_KUBERNETES_NAMESPACE: "jans"
+  CN_SECRET_KUBERNETES_SECRET: "jans"
+  CN_CONFIG_KUBERNETES_NAMESPACE: "jans"
+  CN_CONFIG_KUBERNETES_CONFIGMAP: "jans"
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: persistence-load
+  namespace: jans
+spec:
+  template:
+    metadata:
+      labels:
+        app: persistence-load
+      namespace: jans
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: persistence-load
+          image: docker.io/janssenproject/persistence-loader:5.0.0_dev
+          envFrom:
+          - configMapRef:
+              name: persistence-cm

@@ -1,0 +1,92 @@
+# headless for peer discovery
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opendj-cm
+  namespace: jans
+data:
+  CN_CONFIG_ADAPTER: "kubernetes"
+  CN_SECRET_ADAPTER: "kubernetes"
+  CN_CERT_ALT_NAME: "opendj"
+  CN_SECRET_KUBERNETES_NAMESPACE: "jans"
+  CN_SECRET_KUBERNETES_SECRET: "jans"
+  CN_CONFIG_KUBERNETES_NAMESPACE: "jans"
+  CN_CONFIG_KUBERNETES_CONFIGMAP: "jans"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: opendj
+  labels:
+    app: opendj
+  namespace: jans
+spec:
+  ports:
+  - port: 1636
+    name: ldaps
+    targetPort: 1636
+    protocol: TCP
+  - port: 8989
+    name: replication
+    targetPort: 8989
+    protocol: TCP
+  - port: 4444
+    name: admin
+    targetPort: 4444
+    protocol: TCP
+  clusterIP: None
+  selector:
+    app: opendj
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: opendj
+  namespace: jans
+spec:
+  serviceName: opendj
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opendj
+  template:
+    metadata:
+      labels:
+        app: opendj
+      namespace: jans
+    spec:
+      containers:
+      - name: opendj
+        image: docker.io/gluufederation/opendj:5.0.0_dev
+        lifecycle:
+          preStop:
+            exec:
+              command: ["python3", "/app/scripts/deregister_peer.py"]
+        envFrom:
+        - configMapRef:
+            name: opendj-cm
+        ports:
+          - containerPort: 1636
+            name: ldaps
+          - containerPort: 8989
+            name: replication
+          - containerPort: 4444
+            name: admin
+        readinessProbe:
+          exec:
+            command: ["python3", "/app/scripts/healthcheck.py"]
+          initialDelaySeconds: 25
+          periodSeconds: 25
+          timeoutSeconds: 5
+          failureThreshold: 20
+        livenessProbe:
+          exec:
+            command: ["python3", "/app/scripts/healthcheck.py"]
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 20
