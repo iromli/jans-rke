@@ -23,25 +23,6 @@
 
         cd config
 
-1.  Create `generate.json` to define parameters for generating new config and secret:
-
-    Example:
-
-        {
-            "hostname": "demoexample.jans.io",
-            "country_code": "US",
-            "state": "TX",
-            "city": "Austin",
-            "admin_pw": "S3cr3t+pass",
-            "ldap_pw": "S3cr3t+pass",
-            "email": "s@jans.local",
-            "org_name": "Janssen Project"
-        }
-
-    Afterwards, save this file into ConfigMaps:
-
-        kubectl -n jans create cm config-generate-params --from-file=generate.json
-
 1.  Load config and secret:
 
         kubectl apply -f config-load.yaml
