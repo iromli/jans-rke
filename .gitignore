@@ -133,3 +133,6 @@ cluster.yml
 cluster.rkestate
 kube_config_cluster.yml
 config/generate.json
+nginx/dhparam.pem
+nginx/ingress.crt
+nginx/ingress.key

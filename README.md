@@ -6,13 +6,13 @@
 
 1.  Configure cluster by running `rke config --name cluster.yml`
 
-1.  Make sure there's is one non-loopback nameserver address in `/etc/resolv.conf` (consul to docs of your OS)
+1.  Make sure there's is one non-loopback nameserver address in `/etc/resolv.conf` (consult to docs of your OS)
 
 1.  Deploy cluster
 
 ## Bootstrapping
 
-    export KUBECONFIG=kube_config_cluster.yml
+    export KUBECONFIG=$PWD/kube_config_cluster.yml
     kubectl apply -f bootstrap.yml
 
 ## Deploying Containers
@@ -78,27 +78,17 @@
 
         sh tls-secrets.sh
 
-1.  Afterwards deploy the custom Ingress for Gluu Server routes.
+1.  Afterwards deploy the custom Ingress for Janssen Server routes.
 
         kubectl apply -f nginx.yaml
 
-### oxAuth
+### auth
 
-1.  Go to `oxauth` directory:
+1.  Go to `auth` directory:
 
-        cd ../oxauth
+        cd ../auth
 
-1.  Deploy oxAuth pod:
-
-        NGINX_IP=$HOST_IP sh deploy-pod.sh
-
-### oxTrust
-
-1.  Go to `oxtrust` directory:
-
-        cd ../oxtrust
-
-1.  Deploy oxTrust pod:
+1.  Deploy `jans-auth` pod:
 
         NGINX_IP=$HOST_IP sh deploy-pod.sh
 
@@ -106,16 +96,12 @@
 
 To scale containers, run the following command:
 
-    kubectl -n gluu scale --replicas=<number> <resource> <name>
+    kubectl -n jans scale --replicas=<number> <resource> <name>
 
 In this case, `<resource>` could be Deployment or Statefulset and `<name>` is the resource name.
 
 Examples:
 
--   Scaling oxAuth:
+-   Scaling `jans-auth`:
 
-        kubectl -n gluu scale --replicas=2 deployment oxauth
-
--   Scaling oxTrust:
-
-        kubectl -n gluu scale --replicas=2 statefulset oxtrust
+        kubectl -n jans scale --replicas=2 deployment jans-auth

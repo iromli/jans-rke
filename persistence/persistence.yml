@@ -30,7 +30,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: persistence-load
-          image: docker.io/janssenproject/persistence-loader:5.0.0_dev
+          image: docker.io/janssenproject/persistence-loader:1.0.0_dev
           envFrom:
           - configMapRef:
               name: persistence-cm

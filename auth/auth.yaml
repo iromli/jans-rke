@@ -1,58 +1,57 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: oxauth-cm
-  namespace: gluu
+  name: jans-auth-cm
+  namespace: jans
 data:
-  GLUU_CONFIG_ADAPTER: "kubernetes"
-  GLUU_SECRET_ADAPTER: "kubernetes"
-  DOMAIN: "demoexample.gluu.org"
-  GLUU_LDAP_URL: "opendj:1636"
-  GLUU_SECRET_KUBERNETES_NAMESPACE: "gluu"
-  GLUU_CONFIG_KUBERNETES_NAMESPACE: "gluu"
+  CN_CONFIG_ADAPTER: "kubernetes"
+  CN_SECRET_ADAPTER: "kubernetes"
+  DOMAIN: "demoexample.jans.io"
+  CN_LDAP_URL: "opendj:1636"
+  CN_SECRET_KUBERNETES_NAMESPACE: "jans"
+  CN_CONFIG_KUBERNETES_NAMESPACE: "jans"
 
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: oxauth
+  name: jans-auth
   labels:
-    app: oxauth
-  namespace: gluu
+    app: jans-auth
+  namespace: jans
 spec:
   ports:
   - port: 8080
-    name: oxauth
+    name: jans-auth
   selector:
-    app: oxauth
+    app: jans-auth
 
 ---
 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: oxauth
+  name: jans-auth
   labels:
-    app: oxauth
-    APP_NAME: oxauth
-  namespace: gluu
+    app: jans-auth
+    APP_NAME: jans-auth
+  namespace: jans
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: oxauth
+      app: jans-auth
   template:
     metadata:
       labels:
-        app: oxauth
-        APP_NAME: oxauth
-      namespace: gluu
+        app: jans-auth
+        APP_NAME: jans-auth
+      namespace: jans
     spec:
       containers:
-      - name: oxauth
-        # imagePullPolicy: Always
-        image: docker.io/gluufederation/oxauth:4.2.1_dev
+      - name: jans-auth
+        image: docker.io/janssenproject/auth-server:1.0.0_dev
         resources:
           requests:
             memory: "1000Mi"
@@ -62,42 +61,18 @@ spec:
         - containerPort: 8080
         envFrom:
         - configMapRef:
-            name: oxauth-cm
-        # volumeMounts:
-        #   - mountPath: /opt/gluu/jetty/oxauth/logs
-        #     name: oxauth-logs
-        #   - mountPath: /opt/gluu/jetty/oxauth/lib/ext
-        #     name: oxauth-lib-ext
-        #   - mountPath: /opt/gluu/jetty/oxauth/custom/static
-        #     name: oxauth-custom-static
-        #   - mountPath: /opt/gluu/jetty/oxauth/custom/pages
-        #     name: oxauth-custom-pages
+            name: jans-auth-cm
         livenessProbe:
-          httpGet:
-            path: /oxauth/.well-known/openid-configuration
-            port: 8080
+          exec:
+            command: ["python3", "/app/scripts/healthcheck.py"]
           initialDelaySeconds: 30
           periodSeconds: 30
         readinessProbe:
-          httpGet:
-            path: /oxauth/.well-known/openid-configuration
-            port: 8080
+          exec:
+            command: ["python3", "/app/scripts/healthcheck.py"]
           initialDelaySeconds: 25
           periodSeconds: 25
       hostAliases:
       - ip: NGINX_IP
         hostnames:
-        - demoexample.gluu.org
-      # volumes:
-      # - name: oxauth-logs
-      #   persistentVolumeClaim:
-      #     claimName: oxauth-logs-volume-claim
-      # - name: oxauth-lib-ext
-      #   persistentVolumeClaim:
-      #     claimName: oxauth-lib-ext-volume-claim
-      # - name: oxauth-custom-static
-      #   persistentVolumeClaim:
-      #     claimName: oxauth-custom-static-volume-claim
-      # - name: oxauth-custom-pages
-      #   persistentVolumeClaim:
-      #     claimName: oxauth-custom-pages-volume-claim
+        - demoexample.jans.io
