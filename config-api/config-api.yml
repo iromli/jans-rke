@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jans-config-api-cm
+  namespace: jans
+data:
+  CN_CONFIG_ADAPTER: "kubernetes"
+  CN_SECRET_ADAPTER: "kubernetes"
+  DOMAIN: "demoexample.jans.io"
+  CN_LDAP_URL: "opendj:1636"
+  CN_SECRET_KUBERNETES_NAMESPACE: "jans"
+  CN_CONFIG_KUBERNETES_NAMESPACE: "jans"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jans-config-api
+  labels:
+    app: jans-config-api
+  namespace: jans
+spec:
+  ports:
+  - port: 8074
+    name: jans-config-api
+  selector:
+    app: jans-config-api
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jans-config-api
+  labels:
+    app: jans-config-api
+  namespace: jans
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jans-config-api
+  template:
+    metadata:
+      labels:
+        app: jans-config-api
+      namespace: jans
+    spec:
+      containers:
+      - name: jans-config-api
+        image: docker.io/janssenproject/config-api:1.0.0_dev
+        resources:
+          requests:
+            memory: "1000Mi"
+          limits:
+            memory: "1536Mi"
+        ports:
+        - containerPort: 8074
+        envFrom:
+        - configMapRef:
+            name: jans-config-api-cm
+        # livenessProbe:
+        #   exec:
+        #     command: ["python3", "/app/scripts/healthcheck.py"]
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 30
+        # readinessProbe:
+        #   exec:
+        #     command: ["python3", "/app/scripts/healthcheck.py"]
+        #   initialDelaySeconds: 25
+        #   periodSeconds: 25
+      hostAliases:
+      - ip: NGINX_IP
+        hostnames:
+        - demoexample.jans.io
